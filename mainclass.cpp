@@ -33,8 +33,6 @@ MainClass::~MainClass()
 {
     delete ui;
 }
-
-// ==================== ЧТЕНИЕ ФАЙЛА (int16) ====================
 void MainClass::on_OpenSignal_button_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(
@@ -42,15 +40,13 @@ void MainClass::on_OpenSignal_button_clicked()
         QString(), tr("Data files (*.dat *.bin);;All files (*)"));
     if (filename.isEmpty())
         return;
-
-    // --- Открываем файл и читаем как массив int16_t (LE) ---
+    
     std::ifstream in(filename.toStdString(), std::ios::binary);
     if (!in) {
         QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл");
         return;
     }
 
-    // Определяем размер файла и число отсчётов
     in.seekg(0, std::ios::end);
     std::streamsize bytes = in.tellg();
     in.seekg(0, std::ios::beg);
@@ -60,9 +56,6 @@ void MainClass::on_OpenSignal_button_clicked()
         return;
     }
 
-    // --- ПРОПУСК ЗАГОЛОВКА ---
-    // Если в файле есть заголовок (метаданные), укажите его размер в байтах.
-    // Сейчас 0 — читаем с самого начала.
     const std::streamsize HEADER_BYTES = 0;
     if (bytes <= HEADER_BYTES) {
         QMessageBox::warning(this, "Ошибка", "Файл меньше заголовка");
@@ -71,7 +64,7 @@ void MainClass::on_OpenSignal_button_clicked()
     in.seekg(HEADER_BYTES, std::ios::beg);
 
     const std::streamsize dataBytes = bytes - HEADER_BYTES;
-    const std::streamsize samples = dataBytes / 2;   // int16 = 2 байта
+    const std::streamsize samples = dataBytes / 2;   
 
     std::vector<int16_t> data;
     data.reserve(samples);
@@ -89,14 +82,12 @@ void MainClass::on_OpenSignal_button_clicked()
         return;
     }
 
-    // --- Готовим данные для QCustomPlot ---
     QVector<double> x(data.size()), y(data.size());
     for (int i = 0; i < (int)data.size(); ++i) {
         x[i] = i;
         y[i] = static_cast<double>(data[i]);
     }
 
-    // --- Рисуем ---
     ui->Grapt_qcustomplot->clearGraphs();
     ui->Grapt_qcustomplot->addGraph();
     ui->Grapt_qcustomplot->graph(0)->setData(x, y);
@@ -105,7 +96,6 @@ void MainClass::on_OpenSignal_button_clicked()
     ui->Grapt_qcustomplot->replot();
 }
 
-// ==================== МЫШЬ ====================
 void MainClass::mousePress()
 {
     ui->Grapt_qcustomplot->setSelectionRectMode(QCP::srmZoom);
