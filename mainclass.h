@@ -26,4 +26,4 @@ private:
     Ui::MainClass *ui;
 };
 
-#endif // MAINCLASS_H
+#endif 
